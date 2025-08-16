@@ -1,0 +1,43 @@
+{
+  "name": "ai-chat-backend",
+  "version": "2.0.0",
+  "description": "Backend API for AI Chat Mobile App with Firebase and OpenAI integration",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "dev:debug": "nodemon --inspect index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "ai",
+    "chat",
+    "firebase",
+    "openai",
+    "express",
+    "mobile-api"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.18.2",
+    "firebase-admin": "^13.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "openai": "^5.12.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.0.0"
+  }
+}
