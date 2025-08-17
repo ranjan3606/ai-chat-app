@@ -61,19 +61,19 @@ router.get('/messages', authenticateToken, asyncHandler(async (req, res) => {
   const userId = req.user.uid;
   const { limit = 50, since } = req.query;
 
-  try {
 
+  try {
     let sinceDate = null;
     if (since) {
       const sinceTimestamp = parseInt(since);
       if (isNaN(sinceTimestamp)) {
+        console.error('❌ Invalid since timestamp:', since);
         throw new AppError('Invalid since timestamp', 400, 'INVALID_TIMESTAMP');
       }
       sinceDate = new Date(sinceTimestamp);
     }
 
     const messageLimit = Math.min(parseInt(limit) || 50, 100);
-
     const messages = await getMessages(userId, messageLimit, sinceDate);
 
     res.json({
@@ -86,7 +86,6 @@ router.get('/messages', authenticateToken, asyncHandler(async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get messages error:', error);
     throw new AppError('Failed to fetch messages', 500, 'FETCH_MESSAGES_ERROR');
   }
 }));

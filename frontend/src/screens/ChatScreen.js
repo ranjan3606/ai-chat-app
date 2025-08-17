@@ -15,7 +15,7 @@ export default function ChatScreen({ navigation }) {
   const { user, logout } = useUser();
   const { messages, sendMessage, loadMessages, clearMessages, aiTyping, sending } = useChat();
   const { isDark, toggle: toggleTheme } = useTheme();
-  const { isOnline, startMonitoring, stopMonitoring } = useConnectivity();
+  const { isOnline, checkConnectivity, startMonitoring, stopMonitoring } = useConnectivity();
 
   const theme = {
     colors: {
@@ -30,7 +30,12 @@ export default function ChatScreen({ navigation }) {
 
     const initialize = async () => {
       startMonitoring();
-      await loadMessages();
+      
+        // Check connectivity first, then load messages with priority to backend
+      const connectivity = await checkConnectivity();
+      console.log(`Connectivity check result: ${connectivity}`);
+      
+      await loadMessages(connectivity);
       
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
@@ -41,6 +46,13 @@ export default function ChatScreen({ navigation }) {
     
     return () => stopMonitoring();
   }, [user?.uid]);
+
+  // Also reload messages when connectivity changes
+  useEffect(() => {
+    if (user?.uid && isOnline !== null) {
+      loadMessages(isOnline);
+    }
+  }, [isOnline, user?.uid]);
 
   const handleSendMessage = async () => {
     const messageText = inputText.trim();

@@ -145,7 +145,7 @@ const getMessagesFromFirestore = async (userId, limit = 50, since = null) => {
       messages.push({
         id: doc.id,
         text: data.text,
-        role: data.role,
+        role: data.role, 
         timestamp: data.timestamp?.toDate?.()?.getTime() || Date.now(),
         createdAt: data.createdAt,
         status: data.status,
@@ -207,24 +207,22 @@ const getMessages = async (userId, limit = 50, since = null) => {
   const storageType = getStorageType();
 
   try {
-
     if (storageType === 'firestore' || storageType === 'both') {
       try {
-        return await getMessagesFromFirestore(userId, limit, since);
+        const messages = await getMessagesFromFirestore(userId, limit, since);
+        return messages;
       } catch (error) {
-        console.error('Firestore fetch failed:', error);
         if (storageType === 'firestore') throw error;
       }
     }
 
     if (storageType === 'realtime' || storageType === 'both') {
-      return await getMessagesFromRealtimeDB(userId, limit);
+      const messages = await getMessagesFromRealtimeDB(userId, limit);
+      return messages;
     }
-
     throw new Error('No storage system available');
 
   } catch (error) {
-    console.error('Error getting messages:', error);
     throw error;
   }
 };
@@ -233,7 +231,6 @@ const getRecentHistory = async (userId, limit = 10) => {
   try {
     return await getMessages(userId, limit);
   } catch (error) {
-    console.error('Error getting recent history:', error);
     return [];
   }
 };
@@ -359,7 +356,6 @@ const getChatStats = async (userId) => {
     throw new Error('No storage system available for stats');
 
   } catch (error) {
-    console.error('Error getting chat stats:', error);
     throw error;
   }
 };

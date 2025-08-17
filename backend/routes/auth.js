@@ -15,14 +15,14 @@ router.post('/signup', asyncHandler(async (req, res) => {
 
   const { email, password, displayName } = validation.validatedData;
 
-  try {
+  try {
     const userRecord = await admin.auth().createUser({
       email: email,
       password: password,
       displayName: displayName || email.split('@')[0]
-    });
+    });
+
     const customToken = await admin.auth().createCustomToken(userRecord.uid);
-    
     res.status(201).json({
       success: true,
       message: 'User created successfully',
@@ -35,8 +35,15 @@ router.post('/signup', asyncHandler(async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Signup error:', error);
-    throw error;
+    if (error.code === 'auth/email-already-exists') {
+      throw new AppError('Email already exists', 409, 'EMAIL_EXISTS');
+    } else if (error.code === 'auth/invalid-email') {
+      throw new AppError('Invalid email address', 400, 'INVALID_EMAIL');
+    } else if (error.code === 'auth/weak-password') {
+      throw new AppError('Password is too weak', 400, 'WEAK_PASSWORD');
+    }
+    
+    throw new AppError('Signup failed', 500, 'SIGNUP_ERROR');
   }
 }));
 
@@ -47,10 +54,15 @@ router.post('/login', asyncHandler(async (req, res) => {
     throw new AppError(validation.errors.join(', '), 400, 'VALIDATION_ERROR');
   }
 
-  const { email } = validation.validatedData;
+  const { email, password } = validation.validatedData;
+  try {
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUserByEmail(email);
+    } catch (getUserError) {
+      throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+    }
 
-  try {
-    const userRecord = await admin.auth().getUserByEmail(email);
     const customToken = await admin.auth().createCustomToken(userRecord.uid);
     
     res.json({
@@ -65,13 +77,16 @@ router.post('/login', asyncHandler(async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Login error:', error);
-    throw error;
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('Login failed', 500, 'LOGIN_ERROR');
   }
 }));
 
 router.post('/logout', authenticateToken, asyncHandler(async (req, res) => {
-  try {
+  try {
+
     await admin.auth().revokeRefreshTokens(req.user.uid);
     
     res.json({ 
@@ -80,7 +95,6 @@ router.post('/logout', authenticateToken, asyncHandler(async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Logout error:', error);
     throw new AppError('Logout failed', 500, 'LOGOUT_ERROR');
   }
 }));
@@ -102,7 +116,6 @@ router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Get user error:', error);
     throw new AppError('Failed to get user information', 500, 'GET_USER_ERROR');
   }
 }));

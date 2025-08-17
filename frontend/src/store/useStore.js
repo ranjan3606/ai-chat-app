@@ -1,6 +1,7 @@
 
 import { useSelector, useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { 
   loginSuccess, 
   logout, 
@@ -24,6 +25,8 @@ export const useUser = () => {
   const dispatch = useDispatch();
   const [loginAPI] = useLoginMutation();
   const [signupAPI] = useSignupMutation();
+
+
 
   const login = async (email, password) => {
     try {
@@ -61,11 +64,10 @@ export const useUser = () => {
 
   const logoutUser = async () => {
     try {
-
-      await AsyncStorage.removeItem('userToken');
-      await AsyncStorage.removeItem('userData');
+      await AsyncStorage.clear();      
 
       dispatch(logout());
+      dispatch(clearAllMessages());
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -79,9 +81,12 @@ export const useUser = () => {
       if (token && userData) {
         const user = JSON.parse(userData);
         dispatch(loginSuccess({ user, token }));
+        return { user, token };
       }
+      return null;
     } catch (error) {
       console.error('Check login error:', error);
+      return null;
     }
   };
 
@@ -157,36 +162,64 @@ export const useChat = () => {
     }
   };
 
-  const loadMessages = async () => {
+  const loadMessages = async (isOnline = true) => {
+    if (!user?.uid) {
+      return;
+    }
+
     try {
+      let backendSuccess = false;
 
-      await loadCachedMessages();
+      // Priority 1: Try to fetch from backend if online
+      if (isOnline) {
+        try {
+          const result = await refetch();
+          
+          if (result.data?.data?.messages) {
+            
+            // Normalize timestamps for consistency
+            const normalizedMessages = result.data.data.messages.map(msg => ({
+              ...msg,
+              timestamp: typeof msg.timestamp === 'string' ? msg.timestamp : new Date(msg.timestamp).toISOString()
+            }));
 
-      try {
-        await refetch();
-        if (serverMessages?.data?.messages) {
-
-          const normalizedMessages = serverMessages.data.messages.map(msg => ({
-            ...msg,
-            timestamp: typeof msg.timestamp === 'string' ? msg.timestamp : new Date(msg.timestamp).toISOString()
-          }));
-
-          dispatch(setMessages(normalizedMessages));
-
-          if (user?.uid) {
+            dispatch(setMessages(normalizedMessages));
             await saveCachedMessages({ userId: user.uid, messages: normalizedMessages });
+            
+            backendSuccess = true;
+          } else if (serverMessages?.data?.messages) {
+            
+            // Normalize timestamps for consistency
+            const normalizedMessages = serverMessages.data.messages.map(msg => ({
+              ...msg,
+              timestamp: typeof msg.timestamp === 'string' ? msg.timestamp : new Date(msg.timestamp).toISOString()
+            }));
+
+            dispatch(setMessages(normalizedMessages));
+            await saveCachedMessages({ userId: user.uid, messages: normalizedMessages });
+            backendSuccess = true;
           }
+        } catch (serverError) {
+          backendSuccess = false;
         }
-      } catch (serverError) {
       }
+
+      if (!backendSuccess) {
+        const hadCachedMessages = await loadCachedMessages();
+        
+        if (!hadCachedMessages) {
+          dispatch(setMessages([]));
+        }
+      }
+
     } catch (error) {
-      console.error('Load messages error:', error);
+      dispatch(setMessages([]));
     }
   };
 
   const loadCachedMessages = async () => {
     if (!user?.uid) {
-      return;
+      return false;
     }
     
     try {
@@ -196,28 +229,33 @@ export const useChat = () => {
       if (cachedData) {
         const cachedMessages = JSON.parse(cachedData);
 
-        if (Array.isArray(cachedMessages)) {
+        if (Array.isArray(cachedMessages) && cachedMessages.length > 0) {
           const normalizedMessages = cachedMessages.map(msg => ({
             ...msg,
             timestamp: typeof msg.timestamp === 'string' ? msg.timestamp : new Date(msg.timestamp).toISOString()
           }));
           
           dispatch(setMessages(normalizedMessages));
-        } else {
-          console.warn('⚠️ Invalid cached data format, clearing cache');
+          return true;
+        } else if (!Array.isArray(cachedMessages)) {
           await AsyncStorage.removeItem(cacheKey);
+          return false;
+        } else {
+          return false;
         }
       } else {
+        return false;
       }
     } catch (error) {
-      console.error('Error loading cached messages:', error);
+      console.error('❌ Error loading cached messages:', error);
 
       try {
         const cacheKey = `chat_messages_${user.uid}`;
         await AsyncStorage.removeItem(cacheKey);
       } catch (clearError) {
-        console.error('Error clearing corrupted cache:', clearError);
+        console.error('❌ Error clearing corrupted cache:', clearError);
       }
+      return false;
     }
   };
 

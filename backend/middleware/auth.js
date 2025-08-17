@@ -18,38 +18,53 @@ const authenticateToken = async (req, res, next) => {
         error: 'No token provided in authorization header',
         code: 'MISSING_TOKEN'
       });
-    }
+    }
+
     let decodedToken;
-    try {
-      decodedToken = await admin.auth().verifyIdToken(token);
-    } catch (idTokenError) {
-      try {
-        const jwt = require('jsonwebtoken');
-        const decoded = jwt.decode(token);
-        
-        if (decoded && decoded.uid) {
+    const jwt = require('jsonwebtoken');
+    let decoded;
+    try {
+      decoded = jwt.decode(token);
+    } catch (decodeError) {
+      throw new Error('Invalid token format');
+    }
+    const isCustomToken = decoded && decoded.iss && decoded.iss.includes('firebase-adminsdk');
+    
+    if (isCustomToken) {
+      try {
+        if (decoded && decoded.uid) {
           const userRecord = await admin.auth().getUser(decoded.uid);
           decodedToken = {
             uid: userRecord.uid,
             email: userRecord.email,
             email_verified: userRecord.emailVerified
           };
+          console.log('Successfully verified custom token:', decodedToken.uid);
         } else {
           throw new Error('Invalid custom token structure');
         }
       } catch (customTokenError) {
-        console.error('Both ID token and custom token verification failed:', {
-          idTokenError: idTokenError.message,
-          customTokenError: customTokenError.message
-        });
+        console.error('token verification failed:', customTokenError.message);
+        throw customTokenError;
+      }
+    } else {
+      // Handle ID token
+      console.log('🔍 Processing ID token...');
+      try {
+        decodedToken = await admin.auth().verifyIdToken(token);
+        console.log('Successfully verified ID token for user:', decodedToken.uid);
+      } catch (idTokenError) {
+        console.error('token verification failed:', idTokenError.message);
         throw idTokenError;
       }
-    }
+    }
+
     req.user = decodedToken;
     next();
     
   } catch (error) {
-    console.error('Authentication error:', error);
+    console.error('Authentication error:', error);
+
     if (error.code === 'auth/id-token-expired') {
       return res.status(401).json({ 
         error: 'Token has expired',

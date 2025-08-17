@@ -8,7 +8,8 @@ export default function LoginForm() {
   const [isSignUp, setIsSignUp] = useState(false);
 
   const { login, signup, loading } = useUser();
-  const { isDark } = useTheme();
+  const { isDark } = useTheme();
+
   const theme = {
     colors: {
       surface: isDark ? '#222' : '#f8f9fa',
@@ -34,6 +35,7 @@ export default function LoginForm() {
       } else {
         await login(email, password);
       }
+      // Note: Messages will be loaded by ChatScreen when it mounts
     } catch (error) {
       Alert.alert('Error', error.message);
     }
