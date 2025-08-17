@@ -49,7 +49,6 @@ export const api = createApi({
     getMessages: builder.query({
       query: () => '/chat/messages',
       providesTags: ['Messages'],
-      // Force fresh data on each call
       keepUnusedDataFor: 0,
     }),
 

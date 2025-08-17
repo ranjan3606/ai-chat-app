@@ -35,7 +35,6 @@ export default function LoginForm() {
       } else {
         await login(email, password);
       }
-      // Note: Messages will be loaded by ChatScreen when it mounts
     } catch (error) {
       Alert.alert('Error', error.message);
     }

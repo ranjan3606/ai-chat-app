@@ -48,11 +48,8 @@ const authenticateToken = async (req, res, next) => {
         throw customTokenError;
       }
     } else {
-      // Handle ID token
-      console.log('🔍 Processing ID token...');
       try {
         decodedToken = await admin.auth().verifyIdToken(token);
-        console.log('Successfully verified ID token for user:', decodedToken.uid);
       } catch (idTokenError) {
         console.error('token verification failed:', idTokenError.message);
         throw idTokenError;

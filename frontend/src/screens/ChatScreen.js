@@ -31,9 +31,7 @@ export default function ChatScreen({ navigation }) {
     const initialize = async () => {
       startMonitoring();
       
-        // Check connectivity first, then load messages with priority to backend
       const connectivity = await checkConnectivity();
-      console.log(`Connectivity check result: ${connectivity}`);
       
       await loadMessages(connectivity);
       
@@ -47,7 +45,6 @@ export default function ChatScreen({ navigation }) {
     return () => stopMonitoring();
   }, [user?.uid]);
 
-  // Also reload messages when connectivity changes
   useEffect(() => {
     if (user?.uid && isOnline !== null) {
       loadMessages(isOnline);

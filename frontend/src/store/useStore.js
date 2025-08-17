@@ -170,14 +170,12 @@ export const useChat = () => {
     try {
       let backendSuccess = false;
 
-      // Priority 1: Try to fetch from backend if online
       if (isOnline) {
         try {
           const result = await refetch();
           
           if (result.data?.data?.messages) {
             
-            // Normalize timestamps for consistency
             const normalizedMessages = result.data.data.messages.map(msg => ({
               ...msg,
               timestamp: typeof msg.timestamp === 'string' ? msg.timestamp : new Date(msg.timestamp).toISOString()
@@ -189,7 +187,6 @@ export const useChat = () => {
             backendSuccess = true;
           } else if (serverMessages?.data?.messages) {
             
-            // Normalize timestamps for consistency
             const normalizedMessages = serverMessages.data.messages.map(msg => ({
               ...msg,
               timestamp: typeof msg.timestamp === 'string' ? msg.timestamp : new Date(msg.timestamp).toISOString()

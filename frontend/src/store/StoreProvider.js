@@ -10,11 +10,7 @@ function AppInitializer({ children }) {
 
   useEffect(() => {
     const initializeApp = async () => {
-      // Load theme first
       loadTheme();
-      
-      // Check login status (but don't load messages here)
-      // Messages will be loaded by ChatScreen when needed
       await checkLogin();
     };
 
