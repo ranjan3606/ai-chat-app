@@ -13,12 +13,32 @@ ai-chat-application/
 
 ## Features
 
-- **Mobile App**: React Native with Expo
-- **Authentication**: Firebase Auth
-- **AI Integration**: OpenAI & Google Gemini
-- **Real-time Chat**: Socket.IO
-- **State Management**: Redux Toolkit
-- **Cross-platform**: iOS, Android, Web
+### Core Features
+- **User Authentication**: Firebase Auth with email/password login
+- **AI Chat Interface**: Interactive chat with AI assistant (OpenAI/Gemini)
+- **Real-time Messaging**: Live chat updates using Socket.IO
+- **Chat History**: Persistent message storage in Firestore
+- **Cross-platform**: Android support via React Native & Expo
+
+### Backend Features
+- **Secure API**: Node.js/Express server with Firebase auth middleware
+- **AI Integration**: OpenAI and Google Gemini API support
+- **Message Storage**: Firestore database with user-specific chat collections
+- **Real-time Sync**: Socket.IO for instant message delivery
+- **Error Handling**: Comprehensive error management and validation
+
+### Mobile App Features
+- **Responsive UI**: Modern chat interface with message bubbles
+- **Keyboard Handling**: Smart input positioning to avoid keyboard overlap
+- **Typing Indicators**: Visual feedback while AI processes responses
+- **Connectivity Status**: Network connection monitoring
+- **Theme Support**: Dark mode toggle for better user experience
+- **Offline Persistence**: Chat history available without internet connection
+
+### Security & Performance
+- **Firebase Security Rules**: User-specific data access control
+- **Token Verification**: Secure API endpoints with ID token validation
+- **State Management**: Redux Toolkit for efficient app state handling
 
 ## Complete Setup Guide
 
