@@ -2,12 +2,7 @@
 node_modules/
 frontend/node_modules/
 backend/node_modules/
-backend/firebase-service-account-key.json
-backend/.env
 backend/.env-backup
-
-# Firebase
-firebase-service-account-key.json
 
 # Expo
 .expo/
@@ -33,13 +28,6 @@ frontend/expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
 
 # typescript
 *.tsbuildinfo
